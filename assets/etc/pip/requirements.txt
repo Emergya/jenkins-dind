@@ -1,0 +1,2 @@
+yq==2.7.2
+ansible-tower-cli==3.3.4

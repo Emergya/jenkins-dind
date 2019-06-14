@@ -13,6 +13,7 @@ services:
       - ENV_VHOST=${ENV_VHOST}
       - VIRTUAL_HOSTS=${VIRTUAL_HOSTS}
       - VIRTUAL_HOST=https://${ENV_VHOST}
+      - PLUGINS_FORCE_UPGRADE=true
     volumes:
       - ${DATA_DIR}/docker-containers-volumes/${ENV_VHOST}/var/jenkins_home:/var/jenkins_home
       - ${DATA_DIR}/docker-containers-volumes/${ENV_VHOST}/var/log/supervisor:/var/log/supervisor
