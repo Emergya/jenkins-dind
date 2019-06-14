@@ -1,60 +1,13 @@
 #!/bin/bash
 
-function jenkins-dind-docker-build-cleanup() {
-
-  jenkins-dind-init
-  grep -q $MERGED_BUILD_CONTEXT_DIR /proc/mounts && sudo umount $MERGED_BUILD_CONTEXT_DIR 2>/dev/null
-  sudo rm -rf $MERGED_BUILD_CONTEXT_DIR
-  sudo mkdir -p $MERGED_BUILD_CONTEXT_DIR
-  sudo rm -rf $OVERLAYFS_WORKDIR
-  sudo mkdir -p $OVERLAYFS_WORKDIR
-
-}
-
 function jenkins-dind-docker-build() {
 
-
   jenkins-dind-init
-  jenkins-dind-docker-build-cleanup
-
   FIRST_OLDPWD="$PWD"
   cd $PROJECT_DIR
-  git submodule init
-  git submodule update --recursive
-
   export TIMESTAMP=$(date +%Y%m%d%H%M)
-  cp -a $PROJECT_DIR/Dockerfile.tpl $PROJECT_DIR/Dockerfile
-
-  # merge docker build contexts
-  export DOCKER_CONTEXT_01="$PROJECT_SOURCES_DIR/01-jpetazzo-dind"
-  export DOCKER_CONTEXT_02="$PROJECT_SOURCES_DIR/02-openjdk/8/jdk"
-  export DOCKER_CONTEXT_03="$PROJECT_SOURCES_DIR/03-jenkinsci-docker"
-
-  OVERLAY_LOWER_DIRS="${PROJECT_DIR}"
-  for context in $(env | sort -n | grep ^DOCKER_CONTEXT | awk -F= '{print $1}')
-  do
-  
-    echo "$context = ${!context}"
-    DOCKER_CONTEXT_MARK="$(basename ${!context} | sed -e 's|-|_|g' -e 's|/|_|g')"
-    DOCKER_CONTEXT_DIR="${!context}"
-    DOCKERFILE="${DOCKER_CONTEXT_DIR}/Dockerfile"
-    OVERLAY_LOWER_DIRS="${OVERLAY_LOWER_DIRS}:${DOCKER_CONTEXT_DIR}"
-    # exclude conflicting parts between Dockerfiles
-    grep -v "^FROM\|^MAINTAINER\|^ENTRYPOINT\|^CMD\|^USER" $DOCKERFILE > /tmp/dockerfile-part
-
-    sed -i -e "/_${DOCKER_CONTEXT_MARK}_PLACEHOLDER_/{ r /tmp/dockerfile-part" -e "d}" $PROJECT_DIR/Dockerfile
-  done
-
-  sudo mount -t overlay -o lowerdir=$OVERLAY_LOWER_DIRS,workdir=$OVERLAYFS_WORKDIR overlayfs $MERGED_BUILD_CONTEXT_DIR
-   
   cd $PROJECT_DIR
-  rm -rf .pc
-  export QUILT_PATCHES="$PROJECT_SOURCES_DIR/quilt-patches"
-  quilt push -a
-  cd $MERGED_BUILD_CONTEXT_DIR
   docker build -t $DOCKER_IMAGE .
   cd $FIRST_OLDPWD
-
-  jenkins-dind-docker-build-cleanup
 
 }
