@@ -1,9 +1,0 @@
-[submodule "src/01-jpetazzo-dind"]
-	path = src/01-jpetazzo-dind
-	url = https://github.com/jpetazzo/dind.git
-[submodule "src/02-openjdk"]
-	path = src/02-openjdk
-	url = https://github.com/docker-library/openjdk.git
-[submodule "src/03-jenkinsci-docker"]
-	path = src/03-jenkinsci-docker
-	url = https://github.com/jenkinsci/docker.git
